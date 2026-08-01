@@ -13,6 +13,7 @@
     "dev:client": "bun run --filter @iot/client dev",
     "typecheck": "bun run --filter '*' typecheck",
     "build": "bun run --filter '*' build",
+    "check": "bun lint && bun typecheck",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },

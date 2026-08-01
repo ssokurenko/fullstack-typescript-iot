@@ -2,13 +2,23 @@ import { ApolloClient, HttpLink, InMemoryCache, split } from "@apollo/client";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { createClient } from "graphql-ws";
+import { setConnectionStatus } from "./connection-status";
 
 const httpUrl = import.meta.env.VITE_GRAPHQL_URL ?? "http://localhost:4000/graphql";
 const wsUrl = httpUrl.replace(/^http/, "ws");
 
 const httpLink = new HttpLink({ uri: httpUrl });
 
-const wsLink = new GraphQLWsLink(createClient({ url: wsUrl }));
+const wsLink = new GraphQLWsLink(
+  createClient({
+    url: wsUrl,
+    on: {
+      connected: () => setConnectionStatus("online"),
+      closed: () => setConnectionStatus("offline"),
+      error: () => setConnectionStatus("offline"),
+    },
+  }),
+);
 
 const splitLink = split(
   ({ query }) => {
