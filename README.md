@@ -99,7 +99,7 @@ Open [`api.http`](./api.http) with the [REST Client](https://marketplace.visuals
 VS Code extension and click "Send Request" above any block. It includes:
 - a GraphQL query to fetch readings
 - a GraphQL mutation to add a reading
-- REST `POST /readings` examples for temperature, humidity, soil moisture and CO2
+- REST `POST /readings` examples, each posting a full reading (temp, humidity, soilMoisture, co2)
 - an invalid payload example that should 400
 
 ### Option B: curl
@@ -107,7 +107,7 @@ VS Code extension and click "Send Request" above any block. It includes:
 ```bash
 curl -X POST http://localhost:4000/readings \
   -H 'Content-Type: application/json' \
-  -d '{"metric": "temperature", "value": 23.6, "unit": "celsius"}'
+  -d '{"temp": 23.6, "humidity": 55, "soilMoisture": 38.4, "co2": 798}'
 ```
 
 ### Option C: any GraphQL client

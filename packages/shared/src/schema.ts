@@ -3,9 +3,10 @@ import gql from "graphql-tag";
 export const typeDefs = gql`
   type GreenhouseReading {
     id: ID!
-    metric: String!
-    value: Float!
-    unit: String
+    temp: Float!
+    humidity: Float!
+    soilMoisture: Float!
+    co2: Float!
     timestamp: String!
   }
 
@@ -14,7 +15,12 @@ export const typeDefs = gql`
   }
 
   type Mutation {
-    addReading(metric: String!, value: Float!, unit: String): GreenhouseReading!
+    addReading(
+      temp: Float!
+      humidity: Float!
+      soilMoisture: Float!
+      co2: Float!
+    ): GreenhouseReading!
   }
 
   type Subscription {

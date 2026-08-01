@@ -6,9 +6,10 @@ const READINGS_QUERY = gql`
   query Readings {
     readings {
       id
-      metric
-      value
-      unit
+      temp
+      humidity
+      soilMoisture
+      co2
       timestamp
     }
   }
@@ -18,9 +19,10 @@ const READING_ADDED_SUBSCRIPTION = gql`
   subscription OnReadingAdded {
     readingAdded {
       id
-      metric
-      value
-      unit
+      temp
+      humidity
+      soilMoisture
+      co2
       timestamp
     }
   }
@@ -32,6 +34,16 @@ interface ReadingsData {
 
 interface ReadingAddedData {
   readingAdded: GreenhouseReading;
+}
+
+function ReadingSummary({ reading }: { reading: GreenhouseReading }) {
+  return (
+    <>
+      temp: {reading.temp} · humidity: {reading.humidity} · soilMoisture:{" "}
+      {reading.soilMoisture} · co2: {reading.co2} —{" "}
+      {new Date(reading.timestamp).toLocaleString()}
+    </>
+  );
 }
 
 export default function App() {
@@ -60,13 +72,13 @@ export default function App() {
     <main>
       <h1>Greenhouse Readings</h1>
 
+      {!latest && <p>No readings available.</p>}
+
       {latest && (
         <section>
           <h2>Latest reading</h2>
           <p>
-            {latest.metric}: {latest.value}
-            {latest.unit ? ` ${latest.unit}` : ""} —{" "}
-            {new Date(latest.timestamp).toLocaleString()}
+            <ReadingSummary reading={latest} />
           </p>
         </section>
       )}
@@ -74,9 +86,7 @@ export default function App() {
       <ul>
         {readings.map((reading) => (
           <li key={reading.id}>
-            {reading.metric}: {reading.value}
-            {reading.unit ? ` ${reading.unit}` : ""} —{" "}
-            {new Date(reading.timestamp).toLocaleString()}
+            <ReadingSummary reading={reading} />
           </li>
         ))}
       </ul>

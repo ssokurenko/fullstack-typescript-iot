@@ -5,7 +5,7 @@ POST {{baseUrl}}/graphql
 Content-Type: application/json
 
 {
-  "query": "query Readings($limit: Int) { readings(limit: $limit) { id metric value unit timestamp } }",
+  "query": "query Readings($limit: Int) { readings(limit: $limit) { id temp humidity soilMoisture co2 timestamp } }",
   "variables": { "limit": 10 }
 }
 
@@ -14,48 +14,30 @@ POST {{baseUrl}}/graphql
 Content-Type: application/json
 
 {
-  "query": "mutation AddReading($metric: String!, $value: Float!, $unit: String) { addReading(metric: $metric, value: $value, unit: $unit) { id metric value unit timestamp } }",
-  "variables": { "metric": "temperature", "value": 22.8, "unit": "celsius" }
+  "query": "mutation AddReading($temp: Float!, $humidity: Float!, $soilMoisture: Float!, $co2: Float!) { addReading(temp: $temp, humidity: $humidity, soilMoisture: $soilMoisture, co2: $co2) { id temp humidity soilMoisture co2 timestamp } }",
+  "variables": { "temp": 22.8, "humidity": 58, "soilMoisture": 41.2, "co2": 812 }
 }
 
-### Post a temperature reading from an external device (REST ingest endpoint)
+### Post a reading from an external device (REST ingest endpoint)
 POST {{baseUrl}}/readings
 Content-Type: application/json
 
 {
-  "metric": "temperature",
-  "value": 32.6,
-  "unit": "celsius"
+  "temp": 23.6,
+  "humidity": 55,
+  "soilMoisture": 38.4,
+  "co2": 798
 }
 
-### Post a humidity reading from an external device
+### Post another reading from an external device
 POST {{baseUrl}}/readings
 Content-Type: application/json
 
 {
-  "metric": "humidity",
-  "value": 58,
-  "unit": "percent"
-}
-
-### Post a soil moisture reading from an external device
-POST {{baseUrl}}/readings
-Content-Type: application/json
-
-{
-  "metric": "soilMoisture",
-  "value": 41.2,
-  "unit": "percent"
-}
-
-### Post a CO2 reading from an external device
-POST {{baseUrl}}/readings
-Content-Type: application/json
-
-{
-  "metric": "co2",
-  "value": 812,
-  "unit": "ppm"
+  "temp": 24.1,
+  "humidity": 52,
+  "soilMoisture": 36.9,
+  "co2": 820
 }
 
 ### Invalid device payload (should 400)
@@ -63,6 +45,8 @@ POST {{baseUrl}}/readings
 Content-Type: application/json
 
 {
-  "metric": "",
-  "value": "not-a-number"
+  "temp": "not-a-number",
+  "humidity": 55,
+  "soilMoisture": 38.4,
+  "co2": 798
 }

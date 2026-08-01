@@ -9,7 +9,7 @@ export const resolvers = {
   Mutation: {
     addReading: (
       _: unknown,
-      args: { metric: string; value: number; unit?: string | null },
+      args: { temp: number; humidity: number; soilMoisture: number; co2: number },
     ) => createReading(args),
   },
   Subscription: {

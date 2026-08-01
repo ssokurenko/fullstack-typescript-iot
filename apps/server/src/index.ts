@@ -43,23 +43,24 @@ app.use("/graphql", expressMiddleware(server));
 
 // Plain REST ingest endpoint for external devices that can't speak GraphQL.
 // Every reading posted here is broadcast to subscribers over the `readingAdded` subscription.
+const REQUIRED_FIELDS = ["temp", "humidity", "soilMoisture", "co2"] as const;
+
 app.post("/readings", (req, res) => {
-  const { metric, value, unit } = req.body ?? {};
+  const body = req.body ?? {};
 
-  if (typeof metric !== "string" || metric.length === 0) {
-    res.status(400).json({ error: "metric (non-empty string) is required" });
-    return;
-  }
-  if (typeof value !== "number" || Number.isNaN(value)) {
-    res.status(400).json({ error: "value (number) is required" });
-    return;
-  }
-  if (unit !== undefined && typeof unit !== "string") {
-    res.status(400).json({ error: "unit must be a string if provided" });
-    return;
+  for (const field of REQUIRED_FIELDS) {
+    if (typeof body[field] !== "number" || Number.isNaN(body[field])) {
+      res.status(400).json({ error: `${field} (number) is required` });
+      return;
+    }
   }
 
-  const reading = createReading({ metric, value, unit });
+  const reading = createReading({
+    temp: body.temp,
+    humidity: body.humidity,
+    soilMoisture: body.soilMoisture,
+    co2: body.co2,
+  });
   res.status(201).json(reading);
 });
 

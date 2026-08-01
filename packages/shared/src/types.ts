@@ -1,7 +1,8 @@
 export interface GreenhouseReading {
   id: string;
-  metric: string;
-  value: number;
-  unit: string | null;
+  temp: number;
+  humidity: number;
+  soilMoisture: number;
+  co2: number;
   timestamp: string;
 }
