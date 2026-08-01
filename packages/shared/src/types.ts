@@ -6,3 +6,5 @@ export interface GreenhouseReading {
   co2: number;
   timestamp: string;
 }
+
+export type MetricKey = Exclude<keyof GreenhouseReading, "id" | "timestamp">;

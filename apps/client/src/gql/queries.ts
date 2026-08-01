@@ -12,3 +12,15 @@ export const READINGS_QUERY = gql`
     }
   }
 `;
+
+export const ANOMALIES_QUERY = gql`
+  query Anomalies {
+    anomalies {
+      id
+      metric
+      value
+      zScore
+      timestamp
+    }
+  }
+`;

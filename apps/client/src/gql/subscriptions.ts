@@ -12,3 +12,15 @@ export const READING_ADDED_SUBSCRIPTION = gql`
     }
   }
 `;
+
+export const ANOMALY_DETECTED_SUBSCRIPTION = gql`
+  subscription OnAnomalyDetected {
+    anomalyDetected {
+      id
+      metric
+      value
+      zScore
+      timestamp
+    }
+  }
+`;

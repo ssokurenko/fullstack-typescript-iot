@@ -1,5 +1,7 @@
 {
   "name": "fullstack-typescript-iot",
+  "description": "A fullstack TypeScript IoT application",
+  "license": "MIT",
   "private": true,
   "version": "0.0.0",
   "author": "Sergii Sokurenko",
@@ -11,6 +13,7 @@
     "dev": "bun run --filter '*' dev",
     "dev:server": "bun run --filter @iot/server dev",
     "dev:client": "bun run --filter @iot/client dev",
+    "dev:mock": "bun run --filter @iot/mock-device dev",
     "typecheck": "bun run --filter '*' typecheck",
     "build": "bun run --filter '*' build",
     "check": "bun lint && bun typecheck",

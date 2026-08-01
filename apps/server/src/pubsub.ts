@@ -3,3 +3,4 @@ import { PubSub } from "graphql-subscriptions";
 export const pubsub = new PubSub();
 
 export const READING_ADDED = "READING_ADDED";
+export const ANOMALY_DETECTED = "ANOMALY_DETECTED";

@@ -9,6 +9,14 @@ Content-Type: application/json
   "variables": { "limit": 10 }
 }
 
+### Fetch the last 10 detected anomalies (GraphQL)
+POST {{baseUrl}}/graphql
+Content-Type: application/json
+
+{
+  "query": "query Anomalies { anomalies { id metric value zScore timestamp } }"
+}
+
 ### Add a reading via GraphQL mutation
 POST {{baseUrl}}/graphql
 Content-Type: application/json

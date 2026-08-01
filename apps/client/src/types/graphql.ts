@@ -1,4 +1,4 @@
-import type { GreenhouseReading } from "@iot/shared";
+import type { AnomalyRecord, GreenhouseReading } from "@iot/shared";
 
 export interface ReadingsData {
   readings: GreenhouseReading[];
@@ -6,4 +6,12 @@ export interface ReadingsData {
 
 export interface ReadingAddedData {
   readingAdded: GreenhouseReading;
+}
+
+export interface AnomaliesData {
+  anomalies: AnomalyRecord[];
+}
+
+export interface AnomalyDetectedData {
+  anomalyDetected: AnomalyRecord;
 }

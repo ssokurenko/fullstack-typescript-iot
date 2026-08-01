@@ -10,8 +10,17 @@ export const typeDefs = gql`
     timestamp: String!
   }
 
+  type Anomaly {
+    id: ID!
+    metric: String!
+    value: Float!
+    zScore: Float!
+    timestamp: String!
+  }
+
   type Query {
     readings(limit: Int): [GreenhouseReading!]!
+    anomalies: [Anomaly!]!
   }
 
   type Mutation {
@@ -25,5 +34,6 @@ export const typeDefs = gql`
 
   type Subscription {
     readingAdded: GreenhouseReading!
+    anomalyDetected: Anomaly!
   }
 `;
