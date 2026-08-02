@@ -4,6 +4,7 @@ export const READINGS_QUERY = gql`
   query Readings {
     readings {
       id
+      seq
       temp
       humidity
       soilMoisture
@@ -17,6 +18,7 @@ export const ANOMALIES_QUERY = gql`
   query Anomalies {
     anomalies {
       id
+      seq
       metric
       value
       zScore

@@ -1,19 +1,41 @@
+import { useState } from "react";
+import type { AnomalyRecord, MetricKey } from "@iot/shared";
 import { AnomalyList } from "./AnomalyList";
 import { LiveIndicator } from "./LiveIndicator";
 import { MetricCard } from "./MetricCard";
+import { ReadingsChart } from "./ReadingsChart";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAnomalies } from "../hooks/useAnomalies";
 import { useDashboard } from "../hooks/useDashboard";
 
+const METRIC_LABELS: Record<MetricKey, string> = {
+  temp: "Temperature",
+  humidity: "Humidity",
+  soilMoisture: "Soil Moisture",
+  co2: "CO2",
+};
+
 export function Dashboard() {
-  const { latest, loading, error } = useDashboard();
+  const { readings, latest, loading, error } = useDashboard();
   const anomalies = useAnomalies();
+  const [selectedMetric, setSelectedMetric] = useState<MetricKey>("temp");
+  const [selectedAnomaly, setSelectedAnomaly] = useState<AnomalyRecord | null>(null);
 
   const latestAnomalousMetrics = new Set(
     anomalies
       .filter((anomaly) => anomaly.timestamp === latest?.timestamp)
       .map((anomaly) => anomaly.metric),
   );
+
+  function selectMetric(metric: MetricKey) {
+    setSelectedMetric(metric);
+    setSelectedAnomaly(null);
+  }
+
+  function selectAnomaly(anomaly: AnomalyRecord) {
+    setSelectedMetric(anomaly.metric);
+    setSelectedAnomaly(anomaly);
+  }
 
   return (
     <div className="min-h-screen bg-base-200">
@@ -48,6 +70,8 @@ export function Dashboard() {
                 unit="°C"
                 decimals={1}
                 isAnomaly={latestAnomalousMetrics.has("temp")}
+                isSelected={selectedMetric === "temp"}
+                onClick={() => selectMetric("temp")}
               />
               <MetricCard
                 label="Humidity"
@@ -55,6 +79,8 @@ export function Dashboard() {
                 unit="%"
                 decimals={1}
                 isAnomaly={latestAnomalousMetrics.has("humidity")}
+                isSelected={selectedMetric === "humidity"}
+                onClick={() => selectMetric("humidity")}
               />
               <MetricCard
                 label="Soil Moisture"
@@ -62,12 +88,16 @@ export function Dashboard() {
                 unit="%"
                 decimals={1}
                 isAnomaly={latestAnomalousMetrics.has("soilMoisture")}
+                isSelected={selectedMetric === "soilMoisture"}
+                onClick={() => selectMetric("soilMoisture")}
               />
               <MetricCard
                 label="CO2"
                 value={latest?.co2}
                 unit="ppm"
                 isAnomaly={latestAnomalousMetrics.has("co2")}
+                isSelected={selectedMetric === "co2"}
+                onClick={() => selectMetric("co2")}
               />
             </div>
 
@@ -76,16 +106,26 @@ export function Dashboard() {
                 <div className="card-body flex h-full flex-col overflow-hidden">
                   <h2 className="card-title shrink-0">Anomalies</h2>
                   <div className="flex-1 overflow-y-auto">
-                    <AnomalyList anomalies={anomalies} />
+                    <AnomalyList
+                      anomalies={anomalies}
+                      selectedAnomalyId={selectedAnomaly?.id}
+                      onSelect={selectAnomaly}
+                    />
                   </div>
                 </div>
               </div>
 
               <div className="card h-[320px] bg-base-100 shadow-md">
                 <div className="card-body flex h-full flex-col">
-                  <h2 className="card-title shrink-0">Readings over time</h2>
-                  <div className="flex flex-1 items-center justify-center rounded-box border border-dashed border-base-300 text-base-content/50">
-                    Time-series chart coming soon
+                  <h2 className="card-title shrink-0">
+                    {METRIC_LABELS[selectedMetric]} Timeseries
+                  </h2>
+                  <div className="flex-1 overflow-hidden">
+                    <ReadingsChart
+                      readings={readings}
+                      metric={selectedMetric}
+                      highlightSeq={selectedAnomaly?.seq}
+                    />
                   </div>
                 </div>
               </div>

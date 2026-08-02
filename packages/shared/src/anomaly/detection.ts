@@ -29,6 +29,8 @@ export interface MetricAnomaly {
 /** A detected anomaly as recorded/transmitted (e.g. over GraphQL). */
 export interface AnomalyRecord {
   id: string;
+  /** sequence number of the reading that triggered this anomaly */
+  seq: number;
   metric: MetricKey;
   value: number;
   zScore: number;

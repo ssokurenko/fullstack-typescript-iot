@@ -9,7 +9,7 @@ const METRIC_META: Record<MetricKey, { label: string; unit: string; icon: typeof
   co2: { label: "CO2", unit: "ppm", icon: Wind },
 };
 
-export function AnomalyList({ anomalies }: AnomalyListProps) {
+export function AnomalyList({ anomalies, selectedAnomalyId, onSelect }: AnomalyListProps) {
   if (anomalies.length === 0) {
     return <p className="text-base-content/60">No anomalies detected.</p>;
   }
@@ -22,15 +22,34 @@ export function AnomalyList({ anomalies }: AnomalyListProps) {
     <ul className="list">
       {newestFirst.map((anomaly) => {
         const { label, unit, icon: Icon } = METRIC_META[anomaly.metric];
+        const isSelected = anomaly.id === selectedAnomalyId;
         return (
-          <li key={anomaly.id} className="list-row items-center px-0">
+          <li
+            key={anomaly.id}
+            className={`list-row items-center px-2 transition-colors ${
+              onSelect ? "cursor-pointer" : ""
+            } ${isSelected ? "bg-base-200" : ""}`}
+            onClick={() => onSelect?.(anomaly)}
+            role={onSelect ? "button" : undefined}
+            tabIndex={onSelect ? 0 : undefined}
+            onKeyDown={
+              onSelect
+                ? (event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      onSelect(anomaly);
+                    }
+                  }
+                : undefined
+            }
+          >
             <div className="flex h-10 w-10 items-center justify-center rounded-box bg-base-200">
               <Icon className="h-5 w-5 text-base-content/70" />
             </div>
             <div className="list-col-grow">
               <div className="font-medium">{label}</div>
               <div className="text-xs uppercase font-semibold opacity-60">
-                {anomaly.value}
+                Reading #{anomaly.seq} · {anomaly.value}
                 {unit} · z-score {anomaly.zScore.toFixed(2)}
               </div>
             </div>

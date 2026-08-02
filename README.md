@@ -89,7 +89,7 @@ Once running:
 
 `apps/mock-device` simulates a real greenhouse sensor: every 3 seconds it
 posts one reading (`temp`, `humidity`, `soilMoisture`, `co2`) to
-`POST /readings`. Each value normally drifts 2-5% from its own previous
+`POST /readings`. Each value normally drifts 1-2% from its own previous
 value; every 6th reading injects an anomaly — one randomly chosen metric
 jumps by >10% — and the following reading resumes normally from the last
 non-anomalous value. The ranges and thresholds it generates against live in

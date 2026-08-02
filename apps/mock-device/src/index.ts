@@ -14,7 +14,7 @@ import { TARGET_URL, UPDATE_INTERVAL_MS } from "./config";
 
 // The last known-normal value per metric. Anomaly spikes are computed from
 // this but never written back to it, so the reading right after an anomaly
-// naturally resumes a normal 2-5% step from the pre-anomaly value.
+// naturally resumes a normal 1-2% step from the pre-anomaly value.
 const lastNormalValue: Record<MetricKey, number> = Object.fromEntries(
   METRIC_RANGES.map((metric) => [metric.key, metric.baseline]),
 ) as Record<MetricKey, number>;

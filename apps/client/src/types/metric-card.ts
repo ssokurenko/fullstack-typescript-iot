@@ -6,4 +6,7 @@ export interface MetricCardProps {
   decimals?: number;
   /** highlights the value in red when this metric is currently anomalous */
   isAnomaly?: boolean;
+  /** shows a subtle background highlight when this card is the selected one */
+  isSelected?: boolean;
+  onClick?: () => void;
 }

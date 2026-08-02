@@ -5,7 +5,7 @@ POST {{baseUrl}}/graphql
 Content-Type: application/json
 
 {
-  "query": "query Readings($limit: Int) { readings(limit: $limit) { id temp humidity soilMoisture co2 timestamp } }",
+  "query": "query Readings($limit: Int) { readings(limit: $limit) { id seq temp humidity soilMoisture co2 timestamp } }",
   "variables": { "limit": 10 }
 }
 
@@ -14,7 +14,7 @@ POST {{baseUrl}}/graphql
 Content-Type: application/json
 
 {
-  "query": "query Anomalies { anomalies { id metric value zScore timestamp } }"
+  "query": "query Anomalies { anomalies { id seq metric value zScore timestamp } }"
 }
 
 ### Add a reading via GraphQL mutation
@@ -22,7 +22,7 @@ POST {{baseUrl}}/graphql
 Content-Type: application/json
 
 {
-  "query": "mutation AddReading($temp: Float!, $humidity: Float!, $soilMoisture: Float!, $co2: Float!) { addReading(temp: $temp, humidity: $humidity, soilMoisture: $soilMoisture, co2: $co2) { id temp humidity soilMoisture co2 timestamp } }",
+  "query": "mutation AddReading($temp: Float!, $humidity: Float!, $soilMoisture: Float!, $co2: Float!) { addReading(temp: $temp, humidity: $humidity, soilMoisture: $soilMoisture, co2: $co2) { id seq temp humidity soilMoisture co2 timestamp } }",
   "variables": { "temp": 22.8, "humidity": 58, "soilMoisture": 41.2, "co2": 812 }
 }
 

@@ -20,7 +20,7 @@ export const METRIC_RANGES: MetricRange[] = [
 ];
 
 /** Normal-reading deviation range, as a percentage of the previous value. */
-export const NORMAL_DEVIATION_PCT: [number, number] = [2, 5];
+export const NORMAL_DEVIATION_PCT: [number, number] = [1, 2];
 
 /** Anomaly-reading deviation range, as a percentage of the previous value. */
 export const ANOMALY_DEVIATION_PCT: [number, number] = [10, 25];

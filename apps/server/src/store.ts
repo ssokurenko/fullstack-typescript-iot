@@ -7,6 +7,8 @@ const MAX_ANOMALIES = 10;
 const readings: GreenhouseReading[] = [];
 const anomalies: AnomalyRecord[] = [];
 
+let nextSeq = 1;
+
 export function listReadings(limit?: number | null): GreenhouseReading[] {
   return limit != null ? readings.slice(-limit) : readings;
 }
@@ -23,6 +25,7 @@ export function createReading(input: {
 }): GreenhouseReading {
   const reading: GreenhouseReading = {
     id: crypto.randomUUID(),
+    seq: nextSeq++,
     temp: input.temp,
     humidity: input.humidity,
     soilMoisture: input.soilMoisture,
@@ -40,6 +43,7 @@ export function createReading(input: {
   for (const detected of detectReadingAnomalies(reading, history)) {
     const record: AnomalyRecord = {
       id: crypto.randomUUID(),
+      seq: reading.seq,
       metric: detected.metric,
       value: detected.value,
       zScore: detected.zScore,

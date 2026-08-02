@@ -1,3 +1,4 @@
+import { TriangleAlert } from "lucide-react";
 import { useAnimatedNumber } from "../hooks/useAnimatedNumber";
 import type { MetricCardProps } from "../types/metric-card";
 
@@ -7,15 +8,37 @@ export function MetricCard({
   unit,
   decimals = 0,
   isAnomaly = false,
+  isSelected = false,
+  onClick,
 }: MetricCardProps) {
   const animated = useAnimatedNumber(value);
 
   return (
-    <div className="card bg-base-100 shadow-md">
+    <div
+      className={`card shadow-md transition-colors ${
+        onClick ? "cursor-pointer" : ""
+      } ${isSelected ? "bg-base-300" : "bg-base-100"}`}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
+    >
       <div className="card-body">
-        <h2 className="card-title text-sm font-medium uppercase tracking-wide text-base-content/60">
-          {label}
-        </h2>
+        <div className="flex items-center gap-1.5">
+          <h2 className="card-title text-sm font-medium uppercase tracking-wide text-base-content/60">
+            {label}
+          </h2>
+          {isAnomaly && <TriangleAlert className="h-4 w-4 text-error" />}
+        </div>
         <p
           className={`text-4xl font-bold tabular-nums ${isAnomaly ? "text-error" : ""}`}
         >

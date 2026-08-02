@@ -4,6 +4,7 @@ export const READING_ADDED_SUBSCRIPTION = gql`
   subscription OnReadingAdded {
     readingAdded {
       id
+      seq
       temp
       humidity
       soilMoisture
@@ -17,6 +18,7 @@ export const ANOMALY_DETECTED_SUBSCRIPTION = gql`
   subscription OnAnomalyDetected {
     anomalyDetected {
       id
+      seq
       metric
       value
       zScore
