@@ -34,6 +34,17 @@ database (everything is in-memory), auth, multi-tenant device fleets. None
 of that changes the architecture below - it scales by adding to it, not by
 replacing it.
 
+## Screenshots
+
+**Dashboard** - live metric cards, detected anomalies, and a per-metric
+timeseries chart:
+
+![Dashboard showing metric cards, an anomalies list, and a temperature timeseries chart](assets/screenshots/dashboard.png)
+
+**Swagger UI** - interactive docs for the `POST /readings` ingest endpoint:
+
+![Swagger UI for the POST /readings endpoint](assets/screenshots/swagger-ui.png)
+
 ## Architecture
 
 ```mermaid
@@ -173,6 +184,39 @@ the image needs to keep the same `apps/*`/`packages/*` layout for those
 symlinks to resolve at runtime. `packages/shared` isn't standalone (it's a
 library, not a service), so it doesn't get its own image - it's copied into
 whichever app image needs it.
+
+### Quickstart: run from published images
+
+No clone, no build, no Bun install - just the images CI already pushed to
+GHCR (see below). [`docker-compose.images.yml`](docker-compose.images.yml)
+has two variants, picked with a compose profile:
+
+**1) Server + client only** (clean dashboard, no data):
+
+```bash
+docker compose -f docker-compose.images.yml up -d
+```
+
+**2) Server + client + mock device** (live demo data immediately):
+
+```bash
+docker compose -f docker-compose.images.yml --profile demo up -d
+```
+
+Either way: client at `http://localhost:8080`, GraphQL at
+`http://localhost:4000/graphql`, Swagger at `http://localhost:4001`. With
+option 1 the dashboard starts empty - post readings yourself via
+`api.http`, curl, or the Swagger UI. With option 2 the bundled
+`mock-device` starts streaming realistic readings (with periodic
+anomalies) right away - the fastest way to see the whole thing working.
+Stop either with `docker compose -f docker-compose.images.yml down`.
+
+This pulls `ghcr.io/ssokurenko/fullstack-typescript-iot-{server,client,mock-device}:latest`,
+which only exist once the CI workflow below has run at least once (push to
+`main`). If the packages are still private, `docker login ghcr.io` first
+with a token that has `read:packages`.
+
+### Build from source
 
 Run the whole stack with one command:
 

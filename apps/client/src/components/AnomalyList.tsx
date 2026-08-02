@@ -26,9 +26,9 @@ export function AnomalyList({ anomalies, selectedAnomalyId, onSelect }: AnomalyL
         return (
           <li
             key={anomaly.id}
-            className={`list-row items-center px-2 transition-colors ${
+            className={`list-row items-center rounded-box border px-2 transition-colors ${
               onSelect ? "cursor-pointer" : ""
-            } ${isSelected ? "bg-base-200" : ""}`}
+            } ${isSelected ? "border-base-300 bg-base-200" : "border-transparent"}`}
             onClick={() => onSelect?.(anomaly)}
             role={onSelect ? "button" : undefined}
             tabIndex={onSelect ? 0 : undefined}
