@@ -10,6 +10,7 @@ import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHt
 import { typeDefs } from "@iot/shared";
 import { resolvers } from "./resolvers";
 import { createReading } from "./store";
+import { startSwaggerServer } from "./swagger";
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
@@ -70,3 +71,6 @@ httpServer.listen(port, () => {
   console.log(`🔌 GraphQL subscriptions ready at ws://localhost:${port}/graphql`);
   console.log(`📡 Device ingest endpoint ready at http://localhost:${port}/readings`);
 });
+
+const swaggerPort = Number(process.env.SWAGGER_PORT ?? 4001);
+startSwaggerServer(swaggerPort);

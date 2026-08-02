@@ -1,65 +1,83 @@
-# Greenhouse Monitoring (fullstack-typescript-iot)
+# IoT Monitoring Platform - a TypeScript + Bun PoC (fullstack-typescript-iot)
 
-A small full-stack TypeScript monorepo for ingesting and viewing greenhouse
-sensor readings in real time: external devices post readings over plain
-REST, the server broadcasts them over a GraphQL subscription, and the React
-client updates live.
+This is a proof of concept: small in scope on purpose, but built on
+principles meant to carry straight over into a real product, not thrown
+away once the idea is proven. Its purpose is to show how far a **single
+language and a single toolchain - TypeScript, running on Bun end to end -
+can carry a full-stack, real-time IoT monitoring application**: one shared
+type system for the whole stack, no code-generation step, no build-tool
+zoo. The scenario is concrete (a greenhouse: temperature, humidity, soil
+moisture, CO2) but nothing about the architecture is specific to
+greenhouses - swap the sensors and the schema and the same shape holds.
+
+What it's meant to demonstrate:
+
+- **One shared source of truth, zero drift.** The GraphQL schema, the domain
+  types, and even the anomaly-detection math live once, in
+  `packages/shared`, and are imported unmodified by the server, the React
+  client, and the device simulator. Rename a field and every consumer fails
+  to typecheck immediately - not at runtime, in production.
+- **Real-time without extra infrastructure.** GraphQL subscriptions over a
+  plain WebSocket push every new reading and every detected anomaly to the
+  UI the instant they happen - no polling, no separate message broker.
+- **Basic analysis today, built to grow.** A small statistical anomaly
+  detector (a modified z-score) runs server-side out of the box. It lives in
+  the same shared module where trend detection, forecasting, or alerting
+  rules would go next - the point is the slot exists, not that this one
+  algorithm is the final word.
+- **Bun as the entire toolchain.** One package manager, one workspace
+  runner, and the server runs its TypeScript directly with no separate
+  build/transpile step; Vite does the equivalent job for the client bundle.
+
+What it deliberately leaves out, because a PoC doesn't need it yet: a real
+database (everything is in-memory), auth, multi-tenant device fleets. None
+of that changes the architecture below - it scales by adding to it, not by
+replacing it.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    Device[External Device]
+    Device[["IoT Device(s)"]]
+    Server["Server\nGraphQL API · real-time · anomaly detection"]
+    Client["Client\nReact Dashboard"]
+    Shared[("Shared\nTypes + GraphQL Schema")]
 
-    subgraph Server["apps/server — Express + Apollo Server"]
-        REST["POST /readings"]
-        GQL["/graphql\n(Query / Mutation)"]
-        WS["/graphql\n(Subscription, graphql-ws)"]
-        Store[(In-memory store:\nreadings + last 10 anomalies)]
-        Detector{{Anomaly detector\nmodified z-score}}
-        PubSub{{PubSub}}
-    end
-
-    subgraph Client["apps/client — React + Vite + Apollo Client"]
-        UI[UI]
-    end
-
-    Shared["packages/shared\nGraphQL schema, TS types,\nanomaly generation + detection"]
-
-    Device -->|POST reading| REST
-    REST --> Store
-    Store --> Detector
-    Detector -->|anomaly found| Store
-    Store --> PubSub
-    PubSub -->|readingAdded / anomalyDetected| WS
-    WS -->|live push| UI
-    UI -->|query readings / anomalies / addReading| GQL
-    GQL --> Store
-
+    Device -- "REST: post a reading" --> Server
+    Server <-- "GraphQL: query · mutate · subscribe" --> Client
     Shared -.-> Server
     Shared -.-> Client
 ```
 
+Devices push readings in over plain REST; the server validates, stores, and
+scores each one for anomalies, then serves everything back to the client
+over one GraphQL API - reads, writes, and live subscriptions alike. Both
+ends of that API are built from the same shared schema and types, so they
+can't silently drift apart. (The fuller picture - the in-memory store, the
+detector, the pub/sub fan-out to subscriptions - is in
+[Anomaly detection](#anomaly-detection) below.)
+
 ## Tech stack
 
-- **Bun workspaces** — monorepo tooling, package manager, runtime for the server
-- **Apollo Server** (Express integration) — GraphQL API
-- **graphql-ws** — GraphQL subscriptions over WebSocket
-- **React + Vite** — client app
-- **Apollo Client** — GraphQL queries/mutations/subscriptions in the browser
+- **Bun workspaces** - monorepo tooling, package manager, runtime for the server
+- **Apollo Server** (Express integration) - GraphQL API
+- **graphql-ws** - GraphQL subscriptions over WebSocket
+- **React + Vite + DaisyUI + Chart.js** - client app
+- **Apollo Client** - GraphQL queries/mutations/subscriptions in the browser
+- **swagger-ui-express** - interactive OpenAPI docs for the REST ingest endpoint
 - **TypeScript** everywhere, **ESLint** (`typescript-eslint`) for linting
 
 ## Project structure
 
 ```
 apps/
-  server/       @iot/server       — Apollo Server + REST ingest endpoint
-  client/       @iot/client       — React + Vite + Apollo Client
-  mock-device/  @iot/mock-device  — dev-only fake sensor pushing readings
+  server/       @iot/server       - Apollo Server + REST ingest endpoint
+  client/       @iot/client       - React + Vite + Apollo Client
+  mock-device/  @iot/mock-device  - dev-only fake sensor pushing readings
 packages/
-  shared/   @iot/shared  — GraphQL schema, shared TS types, anomaly
+  shared/   @iot/shared  - GraphQL schema, shared TS types, anomaly
             generation rules + detection algorithm
-api.http    — sample requests (GraphQL + REST)
+api.http    - sample requests (GraphQL + REST)
 ```
 
 ## Setup
@@ -83,18 +101,23 @@ Once running:
 - GraphQL HTTP endpoint: `http://localhost:4000/graphql`
 - GraphQL subscriptions (WebSocket): `ws://localhost:4000/graphql`
 - REST ingest endpoint for devices: `http://localhost:4000/readings`
+- Swagger docs for the REST endpoint: `http://localhost:4001/` (raw spec at `/openapi.json`)
 - Client: `http://localhost:5173`
+
+The server starts both the API (`PORT`, default `4000`) and the Swagger docs
+(`SWAGGER_PORT`, default `4001`) on separate ports in the same process -
+both come up automatically with `bun run dev` / `bun run dev:server`.
 
 ### Mock device (dev only)
 
 `apps/mock-device` simulates a real greenhouse sensor: every 3 seconds it
 posts one reading (`temp`, `humidity`, `soilMoisture`, `co2`) to
 `POST /readings`. Each value normally drifts 1-2% from its own previous
-value; every 6th reading injects an anomaly — one randomly chosen metric
-jumps by >10% — and the following reading resumes normally from the last
+value; every 6th reading injects an anomaly - one randomly chosen metric
+jumps by >10% - and the following reading resumes normally from the last
 non-anomalous value. The ranges and thresholds it generates against live in
 `@iot/shared` (see below), so generation and detection can never drift out
-of sync. It's only meant for local development — already included in
+of sync. It's only meant for local development - already included in
 `bun run dev`, or run it alone with `bun run dev:mock`. Point it at a
 different server with `MOCK_TARGET_URL=http://localhost:4000/readings`.
 
@@ -102,9 +125,9 @@ different server with `MOCK_TARGET_URL=http://localhost:4000/readings`.
 
 `@iot/shared`'s `anomaly/` module is the single source of truth for both
 sides of anomaly handling:
-- `generation.ts` — the per-metric operating ranges and deviation
+- `generation.ts` - the per-metric operating ranges and deviation
   percentages the mock device generates against.
-- `detection.ts` — a **modified (robust) z-score** detector: each incoming
+- `detection.ts` - a **modified (robust) z-score** detector: each incoming
   value is scored against the median and median absolute deviation (MAD) of
   its own trailing window (last 20 readings, min. 5 before it'll score
   anything), rather than mean/standard deviation. Mean and stdDev are
@@ -118,11 +141,11 @@ against the trailing history before it. Anomalies are kept as an in-memory
 log of the last 10 (`Query.anomalies`) and pushed live over a second
 subscription, `Subscription.anomalyDetected`.
 
-The client just reflects that feed (`useAnomalies` hook — query + subscribe,
+The client just reflects that feed (`useAnomalies` hook - query + subscribe,
 no detection logic of its own): the metric card for the affected reading
 shows its value in red (nothing else changes on the card), and the
 Anomalies panel lists each one with a metric-specific icon
-([lucide-react](https://lucide.dev)), its value, and its z-score — no red
+([lucide-react](https://lucide.dev)), its value, and its z-score - no red
 in the list itself, just the icon-labeled rows.
 
 Other useful scripts (run from the repo root, fan out to every workspace):
@@ -136,7 +159,7 @@ bun run build
 
 ## Trying it out
 
-The server starts with no readings — post some data first, then watch it
+The server starts with no readings - post some data first, then watch it
 appear live in the client.
 
 ### Option A: the `api.http` file
@@ -153,16 +176,25 @@ VS Code extension and click "Send Request" above any block. It includes:
 ```bash
 curl -X POST http://localhost:4000/readings \
   -H 'Content-Type: application/json' \
-  -d '{"temp": 23.6, "humidity": 55, "soilMoisture": 38.4, "co2": 798}'
+  -d '{"temp": 42, "humidity": 42, "soilMoisture": 42, "co2": 800}'
 ```
 
 ### Option C: any GraphQL client
 
 Point a tool like Insomnia, Altair, or Apollo Sandbox at
 `http://localhost:4000/graphql` (queries/mutations) and
-`ws://localhost:4000/graphql` (subscriptions) — there's no built-in GraphQL
+`ws://localhost:4000/graphql` (subscriptions) - there's no built-in GraphQL
 Playground UI on this server, since it's mounted via `expressMiddleware`
 without a landing page plugin.
 
 With the client open in a browser, any reading posted through the endpoints
 above shows up immediately via the `readingAdded` subscription.
+
+### Option D: Swagger UI
+
+Open `http://localhost:4001/` for interactive docs of `POST /readings` -
+request/response schemas, an example payload, and a "Try it out" button that
+sends a real request to the API on port 4000. The spec is hand-written in
+[`apps/server/src/openapi-spec.ts`](apps/server/src/openapi-spec.ts); only
+the REST endpoint is documented here since the GraphQL API is already
+self-describing via introspection.

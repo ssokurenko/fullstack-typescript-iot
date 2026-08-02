@@ -41,8 +41,8 @@ export function Dashboard() {
     <div className="min-h-screen bg-base-200">
       <div className="navbar bg-base-100 shadow-sm px-4">
         <div className="navbar-start gap-2">
-          <img src="/greenhouse-logo.png" alt="Greenhouse Monitor logo" className="h-8 w-8" />
-          <span className="text-lg font-semibold">Greenhouse Monitor</span>
+          <img src="/greenhouse-logo.png" alt="IoT Monitoring Dashboard logo" className="h-8 w-8" />
+          <span className="text-lg font-semibold">IoT Monitoring Dashboard</span>
         </div>
         <div className="navbar-end gap-4">
           <LiveIndicator />

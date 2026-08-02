@@ -1,7 +1,7 @@
 import { detectReadingAnomalies, type AnomalyRecord, type GreenhouseReading } from "@iot/shared";
 import { ANOMALY_DETECTED, pubsub, READING_ADDED } from "./pubsub";
 
-const MAX_READINGS = 100;
+const MAX_READINGS = 80;
 const MAX_ANOMALIES = 10;
 
 const readings: GreenhouseReading[] = [];
