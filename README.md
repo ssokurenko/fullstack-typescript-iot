@@ -187,29 +187,48 @@ whichever app image needs it.
 
 ### Quickstart: run from published images
 
-No clone, no build, no Bun install - just the images CI already pushed to
-GHCR (see below). [`docker-compose.images.yml`](docker-compose.images.yml)
-has two variants, picked with a compose profile:
+No clone, no build, no Bun install, not even this repo on disk - just
+Docker and the images CI already pushed to GHCR (see below). Everything
+runs on one shared network so the containers can reach each other by name.
+
+```bash
+docker network create iot-demo
+```
 
 **1) Server + client only** (clean dashboard, no data):
 
 ```bash
-docker compose -f docker-compose.images.yml up -d
+docker run -d --name iot-server --network iot-demo \
+  -p 4000:4000 -p 4001:4001 \
+  ghcr.io/ssokurenko/fullstack-typescript-iot-server:latest
+
+docker run -d --name iot-client --network iot-demo \
+  -p 8080:80 \
+  ghcr.io/ssokurenko/fullstack-typescript-iot-client:latest
 ```
 
-**2) Server + client + mock device** (live demo data immediately):
+Open `http://localhost:8080` - the dashboard starts empty; post readings
+yourself via `api.http`, curl, or the Swagger UI at
+`http://localhost:4001`.
+
+**2) + mock device** (live demo data immediately) - run the two commands
+above, then:
 
 ```bash
-docker compose -f docker-compose.images.yml --profile demo up -d
+docker run -d --name iot-mock-device --network iot-demo \
+  -e MOCK_TARGET_URL=http://iot-server:4000/readings \
+  ghcr.io/ssokurenko/fullstack-typescript-iot-mock-device:latest
 ```
 
-Either way: client at `http://localhost:8080`, GraphQL at
-`http://localhost:4000/graphql`, Swagger at `http://localhost:4001`. With
-option 1 the dashboard starts empty - post readings yourself via
-`api.http`, curl, or the Swagger UI. With option 2 the bundled
-`mock-device` starts streaming realistic readings (with periodic
-anomalies) right away - the fastest way to see the whole thing working.
-Stop either with `docker compose -f docker-compose.images.yml down`.
+It starts streaming realistic readings (with periodic anomalies) right
+away - the fastest way to see the whole thing working.
+
+Stop and clean up:
+
+```bash
+docker rm -f iot-server iot-client iot-mock-device
+docker network rm iot-demo
+```
 
 This pulls `ghcr.io/ssokurenko/fullstack-typescript-iot-{server,client,mock-device}:latest`,
 which only exist once the CI workflow below has run at least once (push to
