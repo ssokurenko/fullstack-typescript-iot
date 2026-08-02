@@ -1,0 +1,9 @@
+node_modules
+**/node_modules
+**/dist
+**/.vite
+.git
+.github
+.claude
+*.log
+.DS_Store

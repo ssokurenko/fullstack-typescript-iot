@@ -65,6 +65,7 @@ detector, the pub/sub fan-out to subscriptions - is in
 - **React + Vite + DaisyUI + Chart.js** - client app
 - **Apollo Client** - GraphQL queries/mutations/subscriptions in the browser
 - **swagger-ui-express** - interactive OpenAPI docs for the REST ingest endpoint
+- **Docker** (multi-stage builds) + **GitHub Actions** - build and publish images to GHCR
 - **TypeScript** everywhere, **ESLint** (`typescript-eslint`) for linting
 
 ## Project structure
@@ -72,12 +73,17 @@ detector, the pub/sub fan-out to subscriptions - is in
 ```
 apps/
   server/       @iot/server       - Apollo Server + REST ingest endpoint
+                                    (+ Dockerfile)
   client/       @iot/client       - React + Vite + Apollo Client
+                                    (+ Dockerfile, nginx.conf)
   mock-device/  @iot/mock-device  - dev-only fake sensor pushing readings
+                                    (+ Dockerfile)
 packages/
   shared/   @iot/shared  - GraphQL schema, shared TS types, anomaly
             generation rules + detection algorithm
-api.http    - sample requests (GraphQL + REST)
+.github/workflows/docker-publish.yml  - build + push all three images to GHCR
+docker-compose.yml  - run the whole stack locally with one command
+api.http            - sample requests (GraphQL + REST)
 ```
 
 ## Setup
@@ -112,7 +118,7 @@ both come up automatically with `bun run dev` / `bun run dev:server`.
 
 `apps/mock-device` simulates a real greenhouse sensor: every 3 seconds it
 posts one reading (`temp`, `humidity`, `soilMoisture`, `co2`) to
-`POST /readings`. Each value normally drifts 1-2% from its own previous
+`POST /readings`. Each value normally drifts 0.2-0.5% from its own previous
 value; every 6th reading injects an anomaly - one randomly chosen metric
 jumps by >10% - and the following reading resumes normally from the last
 non-anomalous value. The ranges and thresholds it generates against live in
@@ -156,6 +162,68 @@ bun run lint
 bun run lint:fix
 bun run build
 ```
+
+## Docker
+
+Each app has its own Dockerfile (`apps/server`, `apps/client`,
+`apps/mock-device`), all built from the **repo root as build context** -
+Bun workspaces link packages via symlinks into one root `node_modules`, so
+`bun install` needs to see every workspace's `package.json` up front, and
+the image needs to keep the same `apps/*`/`packages/*` layout for those
+symlinks to resolve at runtime. `packages/shared` isn't standalone (it's a
+library, not a service), so it doesn't get its own image - it's copied into
+whichever app image needs it.
+
+Run the whole stack with one command:
+
+```bash
+docker compose up --build
+```
+
+- Client: `http://localhost:8080`
+- Server: `http://localhost:4000/graphql`, Swagger docs: `http://localhost:4001`
+- The bundled `mock-device` service points at the `server` service by its
+  compose network name, so readings start flowing immediately - no manual
+  setup needed.
+
+Building a single image manually works the same way - context is always `.`:
+
+```bash
+docker build -f apps/server/Dockerfile -t iot-server .
+```
+
+The client is a static Vite build served by nginx, and Vite bakes `VITE_*`
+env vars into the bundle at **build time**, not runtime - to point a built
+client image at a different API, pass it as a build arg:
+
+```bash
+docker build -f apps/client/Dockerfile \
+  --build-arg VITE_GRAPHQL_URL=https://api.example.com/graphql \
+  -t iot-client .
+```
+
+### CI: build & publish to GHCR
+
+[`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml)
+runs on every push to `main`, every `v*.*.*` tag, and every PR into `main`:
+
+1. **Quality gate** - `bun run typecheck` and `bun run lint` across the
+   whole workspace. Nothing gets built if this fails.
+2. **Build & push** - a matrix job builds all three images in parallel and
+   pushes them to the GitHub Container Registry as:
+   - `ghcr.io/<owner>/<repo>-server`
+   - `ghcr.io/<owner>/<repo>-client`
+   - `ghcr.io/<owner>/<repo>-mock-device`
+
+   Each gets tagged with the branch name, the short commit SHA, `latest` (on
+   `main`), and semver tags on version tags. On pull requests, images are
+   built (to catch breakage) but never pushed. Layers are cached between
+   runs via the GitHub Actions cache.
+
+The workflow authenticates with the automatically-provided `GITHUB_TOKEN`
+(scoped to `packages: write` for that job) - no secrets to configure.
+Packages publish as **private** by default; make them public from the
+package's own settings on GitHub if you want anonymous `docker pull`.
 
 ## Trying it out
 
