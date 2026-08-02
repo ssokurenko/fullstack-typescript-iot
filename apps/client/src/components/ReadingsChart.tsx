@@ -42,7 +42,9 @@ const highlightLinePlugin: Plugin<"line", HighlightLineOptions> = {
     if (!xScale) return;
 
     const { top, bottom } = chart.chartArea;
-    const x = xScale.getPixelForTick(index);
+    // getPixelForValue (not getPixelForTick) matches where the point/line
+    // vertex for this category is actually rendered, at the band's center.
+    const x = xScale.getPixelForValue(index);
 
     const { ctx } = chart;
     ctx.save();
