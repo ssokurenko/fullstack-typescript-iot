@@ -93,8 +93,9 @@ packages/
   shared/   @iot/shared  - GraphQL schema, shared TS types, anomaly
             generation rules + detection algorithm
 .github/workflows/docker-publish.yml  - build + push all three images to GHCR
-docker-compose.yml  - run the whole stack locally with one command
-api.http            - sample requests (GraphQL + REST)
+docker-compose.yml       - run the whole stack locally, building from source
+docker-compose.ghcr.yml  - run server + client from published GHCR images
+api.http                 - sample requests (GraphQL + REST)
 ```
 
 ## Setup
@@ -187,47 +188,43 @@ whichever app image needs it.
 
 ### Quickstart: run from published images
 
-No clone, no build, no Bun install, not even this repo on disk - just
-Docker and the images CI already pushed to GHCR (see below). Everything
-runs on one shared network so the containers can reach each other by name.
+No clone, no build, no Bun install, not even this repo on disk -
+[`docker-compose.ghcr.yml`](docker-compose.ghcr.yml) is fetched straight
+off GitHub and piped into `docker compose`, same idea as
+[dotnet-angular](https://github.com/ssokurenko/dotnet-angular)'s quickstart.
+It defines just the two "real" services - server and client:
 
 ```bash
-docker network create iot-demo
-```
-
-**1) Server + client only** (clean dashboard, no data):
-
-```bash
-docker run -d --name iot-server --network iot-demo \
-  -p 4000:4000 -p 4001:4001 \
-  ghcr.io/ssokurenko/fullstack-typescript-iot-server:latest
-
-docker run -d --name iot-client --network iot-demo \
-  -p 8080:80 \
-  ghcr.io/ssokurenko/fullstack-typescript-iot-client:latest
+curl -fsSL https://raw.githubusercontent.com/ssokurenko/fullstack-typescript-iot/main/docker-compose.ghcr.yml \
+  | docker compose -p iot-demo -f - up -d
 ```
 
 Open `http://localhost:8080` - the dashboard starts empty; post readings
 yourself via `api.http`, curl, or the Swagger UI at
 `http://localhost:4001`.
 
-**2) + mock device** (live demo data immediately) - run the two commands
-above, then:
+**Add the mock device on top** (live demo data immediately) - it isn't
+part of the compose file since it's not a "real" service, just a demo data
+generator; attach it to the same network the compose stack created
+(`<project>_default`, so `iot-demo_default` for the `-p iot-demo` above):
 
 ```bash
-docker run -d --name iot-mock-device --network iot-demo \
-  -e MOCK_TARGET_URL=http://iot-server:4000/readings \
+docker run -d --name iot-mock-device --network iot-demo_default \
+  -e MOCK_TARGET_URL=http://server:4000/readings \
   ghcr.io/ssokurenko/fullstack-typescript-iot-mock-device:latest
 ```
 
 It starts streaming realistic readings (with periodic anomalies) right
-away - the fastest way to see the whole thing working.
+away - the fastest way to see the whole thing working. `server` resolves
+by that name because compose registers each service under its own name on
+the project's network, regardless of the container's actual name.
 
 Stop and clean up:
 
 ```bash
-docker rm -f iot-server iot-client iot-mock-device
-docker network rm iot-demo
+docker rm -f iot-mock-device
+curl -fsSL https://raw.githubusercontent.com/ssokurenko/fullstack-typescript-iot/main/docker-compose.ghcr.yml \
+  | docker compose -p iot-demo -f - down
 ```
 
 This pulls `ghcr.io/ssokurenko/fullstack-typescript-iot-{server,client,mock-device}:latest`,
