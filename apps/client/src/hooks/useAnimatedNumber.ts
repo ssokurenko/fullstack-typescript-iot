@@ -20,8 +20,15 @@ export function useAnimatedNumber(
   useEffect(() => {
     if (target === undefined) return;
 
-    const from = displayRef.current ?? target;
-    if (from === target) return;
+    const from = displayRef.current;
+    // No prior value to animate from (this card's first-ever reading) - snap
+    // straight to it instead of leaving `display` stuck at its initial
+    // `undefined` state (setState never fired, so it would never appear).
+    if (from === undefined || from === target) {
+      displayRef.current = target;
+      setDisplay(target);
+      return;
+    }
 
     let frameId: number;
     const startTime = performance.now();

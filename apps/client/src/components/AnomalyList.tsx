@@ -26,6 +26,9 @@ export function AnomalyList({ anomalies, selectedAnomalyId, onSelect }: AnomalyL
         return (
           <li
             key={anomaly.id}
+            data-testid="anomaly-row"
+            data-metric={anomaly.metric}
+            data-selected={isSelected}
             className={`list-row items-center rounded-box border px-2 transition-colors ${
               onSelect ? "cursor-pointer" : ""
             } ${isSelected ? "border-base-300 bg-base-200" : "border-transparent"}`}

@@ -17,7 +17,11 @@ export function LiveIndicator() {
   const { dot, label, pulse } = STATUS_STYLES[status];
 
   return (
-    <div className="flex items-center gap-2 text-sm text-base-content/70">
+    <div
+      data-testid="connection-status"
+      data-status={status}
+      className="flex items-center gap-2 text-sm text-base-content/70"
+    >
       <span className="relative flex h-4 w-4">
         {pulse && (
           <span

@@ -16,6 +16,8 @@
     "dev:mock": "bun run --filter @iot/mock-device dev",
     "typecheck": "bun run --filter '*' typecheck",
     "build": "bun run --filter '*' build",
+    "e2e": "bun run --filter @iot/e2e test",
+    "e2e:ui": "bun run --filter @iot/e2e test:ui",
     "check": "bun lint && bun typecheck",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"

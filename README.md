@@ -77,6 +77,7 @@ detector, the pub/sub fan-out to subscriptions - is in
 - **Apollo Client** - GraphQL queries/mutations/subscriptions in the browser
 - **swagger-ui-express** - interactive OpenAPI docs for the REST ingest endpoint
 - **Docker** (multi-stage builds) + **GitHub Actions** - build and publish images to GHCR
+- **Playwright** - end-to-end tests against the real client + server
 - **TypeScript** everywhere, **ESLint** (`typescript-eslint`) for linting
 
 ## Project structure
@@ -89,6 +90,7 @@ apps/
                                     (+ Dockerfile, nginx.conf)
   mock-device/  @iot/mock-device  - dev-only fake sensor pushing readings
                                     (+ Dockerfile)
+  e2e/          @iot/e2e          - Playwright end-to-end tests
 packages/
   shared/   @iot/shared  - GraphQL schema, shared TS types, anomaly
             generation rules + detection algorithm
@@ -174,6 +176,31 @@ bun run lint
 bun run lint:fix
 bun run build
 ```
+
+## End-to-end tests
+
+```bash
+bun run e2e       # headless run
+bun run e2e:ui    # Playwright's interactive UI mode
+```
+
+`apps/e2e` is a Playwright suite that drives the real client against the
+real server - no mocked GraphQL, no component testing. Its
+[`playwright.config.ts`](apps/e2e/playwright.config.ts) starts both
+`apps/server` and `apps/client` in dev mode automatically (and reuses
+already-running ones locally, so it's fast on repeat runs) and tears them
+down after. Tests post directly to `POST /readings` to control exactly
+what the server sees, then assert against the UI - covering the dashboard
+loading, a posted reading arriving live via the `readingAdded`
+subscription, metric-card selection driving the chart, and anomaly
+detection surfacing on both the metric card and the Anomalies panel.
+
+Tests run serially (`workers: 1`) by design: they share one live server's
+in-memory state across the whole run, so parallel workers would race each
+other. Key elements carry `data-testid` attributes (`metric-card-<name>`,
+`metric-value`, `chart-title`, `anomaly-row`, `connection-status`) rather
+than relying on copy or CSS classes, so the tests don't break every time
+the wording changes.
 
 ## Docker
 

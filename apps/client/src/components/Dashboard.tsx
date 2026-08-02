@@ -117,7 +117,7 @@ export function Dashboard() {
 
               <div className="card h-[320px] bg-base-100 shadow-md">
                 <div className="card-body flex h-full flex-col">
-                  <h2 className="card-title shrink-0">
+                  <h2 data-testid="chart-title" className="card-title shrink-0">
                     {METRIC_LABELS[selectedMetric]} Timeseries
                   </h2>
                   <div className="flex-1 overflow-hidden">
