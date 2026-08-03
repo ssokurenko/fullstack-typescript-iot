@@ -34,6 +34,10 @@ database (everything is in-memory), auth, multi-tenant device fleets. None
 of that changes the architecture below - it scales by adding to it, not by
 replacing it.
 
+## Demo
+
+[YouTube video (no voice-over)](https://youtu.be/VjrxiOt0_gQ)
+
 ## Screenshots
 
 **Dashboard** - live metric cards, detected anomalies, and a per-metric
