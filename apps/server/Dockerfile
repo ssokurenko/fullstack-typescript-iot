@@ -14,6 +14,7 @@ COPY package.json bun.lock ./
 COPY apps/server/package.json apps/server/package.json
 COPY apps/client/package.json apps/client/package.json
 COPY apps/mock-device/package.json apps/mock-device/package.json
+COPY apps/e2e/package.json apps/e2e/package.json
 COPY packages/shared/package.json packages/shared/package.json
 RUN bun install --frozen-lockfile
 
