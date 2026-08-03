@@ -9,6 +9,12 @@ export const SERVER_URL = "http://localhost:4000";
 
 export default defineConfig({
   testDir: "./tests",
+  // `.e2e.ts`, not `.spec.ts` - Playwright's own default matches `.spec.`/
+  // `.test.` files, which Bun's native `bun test` runner also auto-discovers
+  // repo-wide and can't run (playwright's test.describe() needs to run under
+  // its own runner). Matching a distinct pattern here keeps these out of
+  // Bun's way entirely.
+  testMatch: "**/*.e2e.ts",
   // Tests share one live server's in-memory state (readings/anomalies), so
   // they must run serially, not in parallel workers.
   fullyParallel: false,

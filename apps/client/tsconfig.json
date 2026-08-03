@@ -6,5 +6,5 @@
     "noEmit": true,
     "useDefineForClassFields": true
   },
-  "include": ["src"]
+  "include": ["src", "vitest.setup.ts"]
 }

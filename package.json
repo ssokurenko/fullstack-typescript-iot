@@ -18,6 +18,9 @@
     "build": "bun run --filter '*' build",
     "e2e": "bun run --filter @iot/e2e test",
     "e2e:ui": "bun run --filter @iot/e2e test:ui",
+    "test:client": "bun run --filter @iot/client test",
+    "test:server": "bun run --filter @iot/server test",
+    "test": "bun run test:client && bun run test:server",
     "check": "bun lint && bun typecheck",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"

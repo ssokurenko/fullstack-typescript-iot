@@ -20,7 +20,9 @@ test.describe("Dashboard", () => {
   }) => {
     await openDashboard(page);
 
-    await expect(page.getByText("Anomalies")).toBeVisible();
+    // Not getByText: "No anomalies detected." (shown when the list is
+    // empty) contains "anomalies" too and would make this ambiguous.
+    await expect(page.getByRole("heading", { name: "Anomalies" })).toBeVisible();
     await expect(page.getByTestId("chart-title")).toHaveText(
       "Temperature Timeseries",
     );
