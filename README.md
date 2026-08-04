@@ -1,4 +1,4 @@
-# IoT Monitoring Platform - a TypeScript + Bun
+# IoT Monitoring Platform - TypeScript + Bun
 
 This is a proof of concept: small in scope on purpose, but built on
 principles meant to carry straight over into a real product, not thrown
